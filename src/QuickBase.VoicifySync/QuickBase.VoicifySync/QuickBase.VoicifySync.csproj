@@ -5,6 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.9" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
     <PackageReference Include="Voicify.Sdk.Cms" Version="2.2.0" />
     <PackageReference Include="Voicify.Sdk.Core.Models" Version="2.2.1" />
     <PackageReference Include="Voicify.Sdk.Webhooks" Version="2.2.0" />
