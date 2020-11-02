@@ -219,6 +219,9 @@ namespace QuickBase.VoicifySync.Controllers
                     accessToken: token
                 ));
 
+            // add webhook to app
+            var appWebhook = await appApi.AddWebhookAsync(voicifyAppId, webhook.Id, new WebhookParametersRequest(values: new Dictionary<string, string>(), userDefinedParameters: new Dictionary<string, string>()));
+
 
             return Ok();
         }
