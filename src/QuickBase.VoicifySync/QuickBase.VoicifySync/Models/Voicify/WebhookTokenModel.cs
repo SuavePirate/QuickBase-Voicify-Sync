@@ -15,5 +15,7 @@ namespace QuickBase.VoicifySync.Models.Voicify
         public string QuickBaseAppId { get; set; }
         public string QuickBaseRequestTableId { get; set; }
         public string QuickBaseFaqTableId { get; set; }
+        public Dictionary<string,string> QuickBaseRequestTableMatrix { get; set; }
+        public Dictionary<string,string> QuickBaseFaqTableMatrix { get; set; }
     }
 }

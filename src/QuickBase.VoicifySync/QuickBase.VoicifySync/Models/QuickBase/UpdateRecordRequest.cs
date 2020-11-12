@@ -8,7 +8,7 @@ namespace QuickBase.VoicifySync.Models.QuickBase
     public class UpdateRecordRequest
     {
         [Newtonsoft.Json.JsonProperty("to")]
-        public string To { get; set; }
+        public string To { get; set; } // table id
         [Newtonsoft.Json.JsonProperty("data")]
         public List<Dictionary<string, RecordValue>> Data { get; set; }
     }

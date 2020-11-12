@@ -128,7 +128,7 @@ namespace QuickBase.VoicifySync.Controllers
             using var client = new HttpClient();
             var appProvider = new QuickBaseAppProvider(client, quickbaseRealm, quickbaseToken);
             var tableProvider = new QuickBaseTableProvider(client, quickbaseRealm, quickbaseToken);
-            var fieldProvider = new QuickBaseFieldProvider(client, quickbaseRealm, quickbaseToken);            
+            var fieldProvider = new QuickBaseFieldProvider(client, quickbaseRealm, quickbaseToken);
             var appApi = new ApplicationApi(voicifyConfig);
             var userApi = new UserApi(voicifyConfig);
             var webhookApi = new WebhookApi(voicifyConfig);
@@ -168,7 +168,7 @@ namespace QuickBase.VoicifySync.Controllers
                 return BadRequest(requestTableResult.Errors);
 
             // create fields for tables
-            var results = await Task.WhenAll(new List<Task<Result<QuickBaseField>>>
+            var results = await Task.WhenAll(new List<Task<Result<(QuickBaseField Field, string TableId)>>>
             {
                 fieldProvider.CreateField(faqTableResult.Data.Id, new NewFieldRequest
                 {
@@ -178,9 +178,35 @@ namespace QuickBase.VoicifySync.Controllers
                 {
                     Label = "answer"
                 }),
+                fieldProvider.CreateField(faqTableResult.Data.Id, new NewFieldRequest
+                {
+                    Label = "foregroundImageUrl"
+                }),
+                fieldProvider.CreateField(faqTableResult.Data.Id, new NewFieldRequest
+                {
+                    Label = "followUpPrompt"
+                }),
+                fieldProvider.CreateField(faqTableResult.Data.Id, new NewFieldRequest
+                {
+                    Label = "nextItemRecordIds"
+                }),
+
+
+                fieldProvider.CreateField(requestTableResult.Data.Id, new NewFieldRequest
+                {
+                    Label = "applicationId"
+                }),
+                fieldProvider.CreateField(requestTableResult.Data.Id, new NewFieldRequest
+                {
+                    Label = "requestDate"
+                }),
                 fieldProvider.CreateField(requestTableResult.Data.Id, new NewFieldRequest
                 {
                     Label = "platform"
+                }),
+                fieldProvider.CreateField(requestTableResult.Data.Id, new NewFieldRequest
+                {
+                    Label = "requestId"
                 }),
                 fieldProvider.CreateField(requestTableResult.Data.Id, new NewFieldRequest
                 {
@@ -189,7 +215,19 @@ namespace QuickBase.VoicifySync.Controllers
                 fieldProvider.CreateField(requestTableResult.Data.Id, new NewFieldRequest
                 {
                     Label = "sessionId"
-                })
+                }),
+                fieldProvider.CreateField(requestTableResult.Data.Id, new NewFieldRequest
+                {
+                    Label = "slots"
+                }),
+                fieldProvider.CreateField(requestTableResult.Data.Id, new NewFieldRequest
+                {
+                    Label = "contentItemId"
+                }),
+                fieldProvider.CreateField(requestTableResult.Data.Id, new NewFieldRequest
+                {
+                    Label = "featureTypeId"
+                }),
             });
 
 
@@ -206,7 +244,15 @@ namespace QuickBase.VoicifySync.Controllers
                 VoicifyApplicationId = voicifyAppId,
                 QuickBaseAppId = appResult.Data.Id,
                 QuickBaseFaqTableId = faqTableResult.Data.Id,
-                QuickBaseRequestTableId = requestTableResult.Data.Id
+                QuickBaseRequestTableId = requestTableResult.Data.Id,
+                QuickBaseRequestTableMatrix = results.Where(r => r.Data.TableId == requestTableResult.Data.Id)
+                .ToDictionary(
+                    d => d.Data.Field.Label,
+                    d => d.Data.Field.Id.ToString()),
+                QuickBaseFaqTableMatrix = results.Where(r => r.Data.TableId == faqTableResult.Data.Id)
+                .ToDictionary(
+                    d => d.Data.Field.Label,
+                    d => d.Data.Field.Id.ToString())
             }, _config.GetValue<string>("EncodingKey") ?? "whoops");
 
             // create webhook in voicify
@@ -214,7 +260,7 @@ namespace QuickBase.VoicifySync.Controllers
                 new NewWebhookRequest(
                     title: "Quick Base Request Event",
                     description: "Creates event records in Quick Base when a request is received through Voicify. Use this token for Quick Base pipelines as well",
-                    url: "https://966217e709fd.ngrok.io/api/voicify/contentHit",
+                    url: "https://7659123e70bb.ngrok.io/api/voicify/contentHit",
                     webhookTypeId: "53b40ef2-769c-46e6-bc99-c709e7600c03", // Content Hit Event webhook type
                     accessToken: token
                 ));

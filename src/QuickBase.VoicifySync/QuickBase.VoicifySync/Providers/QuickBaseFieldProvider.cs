@@ -15,9 +15,15 @@ namespace QuickBase.VoicifySync.Providers
         {
         }
 
-        public async Task<Result<QuickBaseField>> CreateField(string tableId, NewFieldRequest model)
+        public async Task<Result<(QuickBaseField Field, string TableId)>> CreateField(string tableId, NewFieldRequest model)
         {
-            return await PostJsonAsync<QuickBaseField>($"https://api.quickbase.com/v1/fields?tableId={tableId}", JsonConvert.SerializeObject(model));
+            var result = await PostJsonAsync<QuickBaseField>($"https://api.quickbase.com/v1/fields?tableId={tableId}", JsonConvert.SerializeObject(model));
+            if(result.ResultType == ResultType.Ok)
+            {
+                return new SuccessResult<(QuickBaseField Field, string TableId)>((result.Data, tableId));
+            }
+
+            return new InvalidResult<(QuickBaseField Field, string TableId)>(result.Errors.FirstOrDefault());
         }
     }
 }

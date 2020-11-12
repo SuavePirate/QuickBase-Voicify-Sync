@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using QuickBase.VoicifySync.Models.QuickBase;
 using QuickBase.VoicifySync.Models.Voicify;
+using QuickBase.VoicifySync.Providers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +14,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Voicify.Sdk.Core.Models.Webhooks.Events;
 using Voicify.Sdk.Core.Models.Webhooks.Requests;
+using Voicify.Sdk.Webhooks.Services;
 
 namespace QuickBase.VoicifySync.Controllers
 {
@@ -18,29 +22,69 @@ namespace QuickBase.VoicifySync.Controllers
     [ApiController]
     public class VoicifyController : ControllerBase
     {
-        [HttpPost("ContentHit")]
-        public async Task<IActionResult> ContentHit([FromBody]JsonElement request)
-        {
-            using var client = new HttpClient();
+        private readonly IConfiguration _config;
 
-            var result = await client.PostAsync("https://api.quickbase.com/v1/records", new StringContent(JsonConvert.SerializeObject(new UpdateRecordRequest
+        public VoicifyController(IConfiguration config)
+        {
+            _config = config;
+        }
+        [HttpPost("ContentHit")]
+        public async Task<IActionResult> ContentHit([FromHeader] string authorization, [FromBody] JObject request)
+        {
+            var tokenModel = TokenConvert.DeserializeEncryptedToken<WebhookTokenModel>(authorization, _config.GetValue<string>("EncodingKey") ?? "whoops");
+            var recordProvider = new QuickBaseRecordProvider(new HttpClient(), tokenModel.QuickBaseRealm, tokenModel.QuickBaseToken);
+
+            var requestModel = new UpdateRecordRequest
             {
-                To = "bqx3eq53s",
+                To = tokenModel.QuickBaseRequestTableId,
                 Data = new List<Dictionary<string, RecordValue>>
                 {
                     new Dictionary<string, RecordValue>
                     {
-                        { "6", new RecordValue(request.GetProperty("data").GetProperty("originalRequest").GetProperty("assistant").GetString()) },
-                        { "7", new RecordValue(request.GetProperty("data").GetProperty("originalRequest").GetProperty("userId").GetString()) },
-                        { "8", new RecordValue(request.GetProperty("data").GetProperty("originalRequest").GetProperty("sessionId").GetString()) },
-                        { "9", new RecordValue(request.GetProperty("data").GetProperty("originalRequest").GetProperty("requestId").GetString()) },
-                        { "10", new RecordValue(request.GetProperty("data").GetProperty("content").GetProperty("id").GetString()) },
-                        { "11", new RecordValue(request.GetProperty("data").GetProperty("featureTypeId").GetString()) }
+                        { tokenModel.QuickBaseRequestTableMatrix["applicationId"], new RecordValue(request["data"]["originalRequest"]["applicationId"].Value<string>()) },
+                        { tokenModel.QuickBaseRequestTableMatrix["requestDate"], new RecordValue(request["data"]["eventDate"].Value<string>()) },
+                        { tokenModel.QuickBaseRequestTableMatrix["platform"], new RecordValue(request["data"]["originalRequest"]["assistant"].Value<string>()) },
+                        { tokenModel.QuickBaseRequestTableMatrix["requestId"], new RecordValue(request["data"]["originalRequest"]["requestId"].Value<string>()) },
+                        { tokenModel.QuickBaseRequestTableMatrix["userId"], new RecordValue(request["data"]["originalRequest"]["userId"].Value<string>()) },
+                        { tokenModel.QuickBaseRequestTableMatrix["sessionId"], new RecordValue(request["data"]["originalRequest"]["sessionId"].Value<string>()) },
+                        { tokenModel.QuickBaseRequestTableMatrix["slots"], new RecordValue(request["data"]["originalRequest"]["slots"].ToString()) },
+                        { tokenModel.QuickBaseRequestTableMatrix["contentItemId"], new RecordValue(request["data"]["content"]["id"].Value<string>()) },
+                        { tokenModel.QuickBaseRequestTableMatrix["featureTypeId"], new RecordValue(request["data"]["featureTypeId"].Value<string>()) }
                     }
                 }
-            }), Encoding.UTF8, "application/json"));
+            };
+
+            var result = await recordProvider.AddOrUpdateRecord(requestModel);
+
+            if (result?.ResultType == ServiceResult.ResultType.Ok)
+            {
+                return Ok(result.Data);
+            }
+
+            return BadRequest(result.Errors);
 
             return Ok();
+
+
+            //using var client = new HttpClient();
+
+            //var result = await client.PostAsync("https://api.quickbase.com/v1/records", new StringContent(JsonConvert.SerializeObject(new UpdateRecordRequest
+            //{
+            //    To = "bqx3eq53s",
+            //    Data = new List<Dictionary<string, RecordValue>>
+            //    {
+            //        new Dictionary<string, RecordValue>
+            //        {
+            //            { "6", new RecordValue(request["data"]["originalRequest"]["assistant").Value<string>()) },
+            //            { "7", new RecordValue(request["data"]["originalRequest"]["userId").Value<string>()) },
+            //            { "8", new RecordValue(request["data"]["originalRequest"]["sessionId").Value<string>()) },
+            //            { "9", new RecordValue(request["data"]["originalRequest"]["requestId").Value<string>()) },
+            //            { "10", new RecordValue(request["data"]["content"]["id").Value<string>()) },
+            //            { "11", new RecordValue(request["data"]["featureTypeId").Value<string>()) }
+            //        }
+            //    }
+            //}), Encoding.UTF8, "application/json"));
+
         }
     }
 }
