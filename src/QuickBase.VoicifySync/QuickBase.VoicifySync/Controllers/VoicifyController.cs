@@ -62,29 +62,6 @@ namespace QuickBase.VoicifySync.Controllers
             }
 
             return BadRequest(result.Errors);
-
-            return Ok();
-
-
-            //using var client = new HttpClient();
-
-            //var result = await client.PostAsync("https://api.quickbase.com/v1/records", new StringContent(JsonConvert.SerializeObject(new UpdateRecordRequest
-            //{
-            //    To = "bqx3eq53s",
-            //    Data = new List<Dictionary<string, RecordValue>>
-            //    {
-            //        new Dictionary<string, RecordValue>
-            //        {
-            //            { "6", new RecordValue(request["data"]["originalRequest"]["assistant").Value<string>()) },
-            //            { "7", new RecordValue(request["data"]["originalRequest"]["userId").Value<string>()) },
-            //            { "8", new RecordValue(request["data"]["originalRequest"]["sessionId").Value<string>()) },
-            //            { "9", new RecordValue(request["data"]["originalRequest"]["requestId").Value<string>()) },
-            //            { "10", new RecordValue(request["data"]["content"]["id").Value<string>()) },
-            //            { "11", new RecordValue(request["data"]["featureTypeId").Value<string>()) }
-            //        }
-            //    }
-            //}), Encoding.UTF8, "application/json"));
-
         }
     }
 }

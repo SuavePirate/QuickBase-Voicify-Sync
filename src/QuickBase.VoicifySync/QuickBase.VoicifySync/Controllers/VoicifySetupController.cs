@@ -132,7 +132,12 @@ namespace QuickBase.VoicifySync.Controllers
             var appApi = new ApplicationApi(voicifyConfig);
             var userApi = new UserApi(voicifyConfig);
             var webhookApi = new WebhookApi(voicifyConfig);
+            var orgApi = new OrganizationApi(voicifyConfig);
 
+
+            // get voicify org
+            var orgs = await orgApi.GetForUserAsync();
+            var org = orgs.FirstOrDefault(o => o.Id == request.OrganizationId);
 
             // get voicify app
             var app = await appApi.FindApplicationAsync(voicifyAppId);
@@ -237,6 +242,8 @@ namespace QuickBase.VoicifySync.Controllers
             // create token with api user credentials
             var token = TokenConvert.SerializeEncryptedToken(new WebhookTokenModel
             {
+                VoicifyOrganizationId = org.Id,
+                VoicifyOrganizationSecret = org.Secret,
                 VoicifyApiUserName = apiUser.Username,
                 VoicifyApiUserSecret = apiUser.Password,
                 QuickBaseToken = quickbaseToken,

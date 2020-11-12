@@ -7,6 +7,8 @@ namespace QuickBase.VoicifySync.Models.Voicify
 {
     public class WebhookTokenModel
     {
+        public string VoicifyOrganizationId { get; set; }
+        public string VoicifyOrganizationSecret { get; set; }
         public string VoicifyApiUserName { get; set; }
         public string VoicifyApiUserSecret { get; set; }
         public string VoicifyApplicationId { get; set; }
