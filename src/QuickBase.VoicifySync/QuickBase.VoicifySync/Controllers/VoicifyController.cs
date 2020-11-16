@@ -33,7 +33,6 @@ namespace QuickBase.VoicifySync.Controllers
         {
             var tokenModel = TokenConvert.DeserializeEncryptedToken<WebhookTokenModel>(authorization, _config.GetValue<string>("EncodingKey") ?? "whoops");
             var recordProvider = new QuickBaseRecordProvider(new HttpClient(), tokenModel.QuickBaseRealm, tokenModel.QuickBaseToken);
-
             var requestModel = new UpdateRecordRequest
             {
                 To = tokenModel.QuickBaseRequestTableId,
@@ -44,7 +43,7 @@ namespace QuickBase.VoicifySync.Controllers
                         { tokenModel.QuickBaseRequestTableMatrix["applicationId"], new RecordValue(request["data"]["originalRequest"]["applicationId"].Value<string>()) },
                         { tokenModel.QuickBaseRequestTableMatrix["requestDate"], new RecordValue(request["data"]["eventDate"].Value<string>()) },
                         { tokenModel.QuickBaseRequestTableMatrix["platform"], new RecordValue(request["data"]["originalRequest"]["assistant"].Value<string>()) },
-                        { tokenModel.QuickBaseRequestTableMatrix["requestId"], new RecordValue(request["data"]["originalRequest"]["requestId"].Value<string>()) },
+                        { tokenModel.QuickBaseRequestTableMatrix["requestId"], new RecordValue(request["data"]["originalRequest"]["requestId"]?.Value<string>() ?? Guid.NewGuid().ToString()) },
                         { tokenModel.QuickBaseRequestTableMatrix["userId"], new RecordValue(request["data"]["originalRequest"]["userId"].Value<string>()) },
                         { tokenModel.QuickBaseRequestTableMatrix["sessionId"], new RecordValue(request["data"]["originalRequest"]["sessionId"].Value<string>()) },
                         { tokenModel.QuickBaseRequestTableMatrix["slots"], new RecordValue(request["data"]["originalRequest"]["slots"].ToString()) },

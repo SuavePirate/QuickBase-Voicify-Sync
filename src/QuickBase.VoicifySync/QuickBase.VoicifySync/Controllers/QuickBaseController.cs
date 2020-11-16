@@ -56,7 +56,7 @@ namespace QuickBase.VoicifySync.Controllers
                 }
 
                 // get root feature of app
-                var features = await featureApi.GetFeaturesForApplicationAsync("d4b2f71a-e528-43d4-b4e5-9cf5a5862e3a");
+                var features = await featureApi.GetFeaturesForApplicationAsync(tokenModel.VoicifyApplicationId);
                 var rootFeature = features.FirstOrDefault(af => string.IsNullOrEmpty(af.ParentId));
 
                 // add question answer to root feature
