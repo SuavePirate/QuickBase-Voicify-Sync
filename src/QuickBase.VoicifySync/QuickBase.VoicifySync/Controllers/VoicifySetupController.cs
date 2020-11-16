@@ -265,9 +265,9 @@ namespace QuickBase.VoicifySync.Controllers
             // create webhook in voicify
             var webhook = await webhookApi.CreateWebhookAsync(request.OrganizationId,
                 new NewWebhookRequest(
-                    title: "Quick Base Request Event",
+                    title: $"{app?.Name ?? "App"} - Quick Base Request Event",
                     description: "Creates event records in Quick Base when a request is received through Voicify. Use this token for Quick Base pipelines as well",
-                    url: "https://7659123e70bb.ngrok.io/api/voicify/contentHit",
+                    url: "https://quick-base-voicify-sync.azurewebsites.net/api/voicify/contentHit",
                     webhookTypeId: "53b40ef2-769c-46e6-bc99-c709e7600c03", // Content Hit Event webhook type
                     accessToken: token
                 ));
